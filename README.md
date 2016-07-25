@@ -6,6 +6,6 @@ visualization of sunrise and sunset by timezone
 2. create visualization `./visualize.r`
 
 ## data source
-* timezone shapefile: (http://efele.net/maps/tz/world/)
-* utc offsets: (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-* sunrise and sunset of timezone centroid by [RAtmosphere](https://cran.r-project.org/web/packages/RAtmosphere/RAtmosphere.pdf)
+* timezone shapefile: http://efele.net/maps/tz/world/
+* utc offsets: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+* sunrise and sunset of timezone centroid by [insol](https://cran.r-project.org/web/packages/insol/insol.pdf)

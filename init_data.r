@@ -10,7 +10,7 @@ requiredPackages <- c(
   "properties", 
   "rgdal",       #read, update and write Shapefile
   "rgeos",       #gCentroid()
-  "RAtmosphere", #suncalc()
+  "insol",       #suncalc()
   "rvest",       #html_table()
   "jsonlite")    #fromJSON()
 lapply(requiredPackages, function(p){
@@ -68,9 +68,9 @@ for(i in 1:nrow(shpWithOffsets)) {
   tzid <- shpWithOffsets[i,]$TZID
   centroid <- gCentroid(shpWithOffsets[i,], byid = TRUE)
   dayOfYear <- as.numeric(strftime(Sys.time(), format = "%j"))
-  sun <- suncalc(dayOfYear, Lat = centroid$y, Long = centroid$y, UTC = TRUE)
-  sunrise <- paste(floor(sun$sunrise), round((sun$sunrise-floor(sun$sunrise))*60), sep=":")
-  sunset <- paste(floor(sun$sunset), round((sun$sunset-floor(sun$sunset))*60), sep=":")
+  sun <- daylength(lat = centroid$y, long = centroid$y, dayOfYear, 0)
+  sunrise <- paste(floor(sun[1,"sunrise"]), round((sun[1,"sunrise"]-floor(sun[1,"sunrise"]))*60), sep=":")
+  sunset <- paste(floor(sun[1,"sunset"]), round((sun[1,"sunset"]-floor(sun[1,"sunset"]))*60), sep=":")
   sunData <- rbind(sunData,data.frame(TZID=tzid, sunrise=sunrise, sunset=sunset))
 }
 shpWithOffsetsAndSun <- merge(shpWithOffsets, sunData, by.x="TZID", by.y="TZID", all=T)
