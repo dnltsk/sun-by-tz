@@ -7,12 +7,10 @@ args <- commandArgs(trailingOnly=TRUE)
 # load required packages
 #
 requiredPackages <- c(
-  "properties", 
   "rgdal",       #read, update and write Shapefile
   "rgeos",       #gCentroid()
   "insol",       #suncalc()
   "rvest",       #html_table()
-  "raster",      #html_table()
   "lubridate",   #hm()
   "jsonlite")    #fromJSON()
 lapply(requiredPackages, function(p){
@@ -34,7 +32,7 @@ str(data.frame(shp))
 #
 wiki <- read_html("https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
 zoneInfos <- wiki %>% html_nodes("table") %>% .[[1]]  %>% html_table(fill=TRUE)
-zoneInfos$dstOffset <- hour(hm(zoneInfos$"UTC DST offset"))*60 + minute(hm(zoneInfos$"UTC DST offset")) 
+zoneInfos$dstOffset <- as.integer(hour(hm(zoneInfos$"UTC DST offset"))*60 + minute(hm(zoneInfos$"UTC DST offset")))
 
 #
 # append timezone offsets into base shapefile
