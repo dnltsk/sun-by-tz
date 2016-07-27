@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
 setwd("/Users/danielt/projects/sun-by-tz/")
-args <- commandArgs(trailingOnly=TRUE)
 
 #
 # load required packages
@@ -10,7 +9,10 @@ requiredPackages <- c(
   "rgdal",       #read, update and write Shapefile
   "raster",      #shift()
   "lubridate",   #hm()
-  "jsonlite")    #fromJSON()
+  "maptools",
+  "ggplot2",     # fortify(), ggplot()
+  "plyr"
+  )
 lapply(requiredPackages, function(p){
   if (!is.element(p, installed.packages()[,1]))
     install.packages(p, dep = TRUE)
@@ -18,9 +20,25 @@ lapply(requiredPackages, function(p){
 })
 
 #
-# download, extract and read shapefile
+# load prepared dara
 #
-download.file("http://efele.net/maps/tz/world/tz_world_mp.zip", "data/tz_world_mp.zip")
-unzip("data/tz_world_mp.zip", exdir = "data")
-shp <- readOGR("data/world/tz_world_mp.shp", layer="tz_world_mp")
+shp <- readOGR("data/enrichedTimezones.shp", layer="enrichedTimezones")
 
+#
+# prepare for use in ggplot
+# https://github.com/hadley/ggplot2/wiki/plotting-polygon-shapefiles
+# http://stackoverflow.com/questions/32278513/r-fatal-error-crash-when-using-fortify
+#
+shp@data$id = rownames(shp@data)
+shp.points = fortify(shp)
+shp.df = join(shp.points, shp@data, by="id")
+
+#
+# plot
+#
+ggplot(shp.df) + 
+  aes(long,lat,group=group,fill=TZID) + 
+  geom_polygon() +
+  geom_path(color="white") +
+  coord_equal() +
+  theme(legend.position="none")
