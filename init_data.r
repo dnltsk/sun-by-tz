@@ -7,11 +7,15 @@ args <- commandArgs(trailingOnly=TRUE)
 # load required packages
 #
 requiredPackages <- c(
+  "devtools",
   "rgdal",       #read, update and write Shapefile
   "rgeos",       #gCentroid()
   "insol",       #suncalc()
   "rvest",       #html_table()
   "lubridate",   #hm()
+  "sp",
+  "geojsonio",
+  "rmapshaper",
   "jsonlite")    #fromJSON()
 lapply(requiredPackages, function(p){
   if (!is.element(p, installed.packages()[,1]))
@@ -28,6 +32,14 @@ shp <- readOGR("data/world/tz_world_mp.shp", layer="tz_world_mp")
 str(data.frame(shp))
 
 #
+# simplify
+#
+shpGeoJson <- geojson_json(shp, geometry = "polygon", group = "group")
+shpGeoJsonSimplified <- ms_simplify(shpGeoJson)
+shp <- readOGR(shpGeoJsonSimplified, "OGRGeoJSON",  verbose = F)
+str(shp@data)
+
+#
 # load TZ streight forward infos from Wikipedia and append them to Shapefile
 #
 wiki <- read_html("https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
@@ -37,8 +49,7 @@ zoneInfos$dstOffset <- as.integer(hour(hm(zoneInfos$"UTC DST offset"))*60 + minu
 #
 # append timezone offsets into base shapefile
 #
-
-shpWithOffset <- merge(shp, zoneInfos[,c("TZ*", "dstOffset")], by.x="TZID", by.y="TZ*", all=T)
+shpWithOffset <- merge(shp, zoneInfos[,c("TZ*", "dstOffset")], by.x="TZID", by.y="TZ*", all=F)
 str(data.frame(shpWithOffset))
 
 #
@@ -55,9 +66,11 @@ for(i in 1:nrow(shpWithOffset)) {
   sunData <- rbind(sunData,data.frame(TZID=tzid, sunrise=sunrise, sunset=sunset))
 }
 shpWithOffsetAndSun <- merge(shpWithOffset, sunData, by.x="TZID", by.y="TZID", all=T)
+str(data.frame(shpWithOffsetAndSun))
 
 #
-# export new shapefile
+# export simplified and enriched shapefile
 #
-writeOGR(shpWithOffsetAndSun, "data/enrichedTimezones.shp", layer="enrichedTimezones", driver="ESRI Shapefile")
+writeOGR(shpWithOffsetAndSun, "data/simplifiedEnrichedZones.shp", layer="simplifiedZones", driver="ESRI Shapefile",
+         overwrite_layer=T)
 
